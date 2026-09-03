@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: cloud-native-app
+  namespace: production
+  labels:
+    app: cloud-native-app
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8000"
+spec:
+  type: ClusterIP
+  selector:
+    app: cloud-native-app
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP

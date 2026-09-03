@@ -1,0 +1,16 @@
+environment             = "dev"
+project_name            = "cloud-native-app"
+aws_region              = "ap-south-1"
+vpc_cidr                = "10.0.0.0/16"
+availability_zones      = ["ap-south-1a", "ap-south-1b"]
+kubernetes_version      = "1.28"
+eks_node_instance_type  = "t3.small"
+eks_node_desired_size   = 2
+eks_node_min_size       = 1
+eks_node_max_size       = 3
+rds_instance_class      = "db.t3.micro"
+rds_allocated_storage   = 20
+db_name                 = "appdb"
+db_username             = "app_admin"
+redis_node_type         = "cache.t3.micro"
+redis_num_nodes         = 1

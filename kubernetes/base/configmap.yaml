@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: production
+data:
+  APP_ENV: "production"
+  LOG_LEVEL: "info"
+  RATE_LIMIT_REQUESTS: "100"
+  RATE_LIMIT_WINDOW: "60"
+  DATA_FRESHNESS_SLA_HOURS: "1"
+  MAX_RETRY_COUNT: "3"
+  POSTGRES_PORT: "5432"
+  POSTGRES_DB: "appdb"
+  REDIS_PORT: "6379"

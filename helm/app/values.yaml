@@ -1,0 +1,57 @@
+# Default values
+replicaCount: 3
+
+image:
+  repository: ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/cloud-native-app/production
+  tag: latest
+  pullPolicy: Always
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8000
+
+ingress:
+  enabled: true
+  className: nginx
+  host: api.example.com
+  tls: true
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilization: 70
+  targetMemoryUtilization: 80
+
+probes:
+  liveness:
+    path: /health
+    initialDelaySeconds: 15
+    periodSeconds: 20
+  readiness:
+    path: /ready
+    initialDelaySeconds: 5
+    periodSeconds: 10
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 2
+
+secrets:
+  postgresHost: ""
+  postgresPassword: ""
+  redisHost: ""
+  jwtSecret: ""
+
+monitoring:
+  enabled: true
+  serviceMonitor: true

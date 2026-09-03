@@ -1,0 +1,99 @@
+name: Deploy to Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: 'Docker image tag to deploy'
+        required: true
+        type: string
+      confirm:
+        description: 'Type "DEPLOY" to confirm'
+        required: true
+        type: string
+
+jobs:
+  validate:
+    name: Validate Deployment
+    runs-on: ubuntu-latest
+    steps:
+      - name: Confirm deployment
+        run: |
+          if [ "${{ github.event.inputs.confirm }}" != "DEPLOY" ]; then
+            echo "Deployment cancelled. Type DEPLOY to confirm."
+            exit 1
+          fi
+          echo "✅ Deployment confirmed"
+
+  deploy:
+    name: Deploy to EKS
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ap-south-1
+
+      - name: Update kubeconfig
+        run: aws eks update-kubeconfig --name cloud-native-app-production --region ap-south-1
+
+      - name: Deploy with Helm
+        run: |
+          helm upgrade --install cloud-native-app ./helm/app \
+            --namespace production \
+            --create-namespace \
+            --set image.tag=${{ github.event.inputs.image_tag }} \
+            --values helm/app/values-prod.yaml \
+            --wait \
+            --timeout 300s
+
+      - name: Verify deployment
+        run: |
+          kubectl rollout status deployment/cloud-native-app -n production --timeout=300s
+          kubectl get pods -n production -l app=cloud-native-app
+
+  smoke-test:
+    name: Smoke Tests
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          ENDPOINT=$(kubectl get ingress cloud-native-app -n production -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+          for i in {1..10}; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "http://$ENDPOINT/health" || echo "000")
+            if [ "$STATUS" = "200" ]; then
+              echo "✅ Health check passed"
+              exit 0
+            fi
+            echo "Attempt $i: status=$STATUS, retrying..."
+            sleep 10
+          done
+          echo "❌ Health check failed after 10 attempts"
+          exit 1
+
+  rollback-on-failure:
+    name: Rollback on Failure
+    needs: [deploy, smoke-test]
+    if: failure()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ap-south-1
+
+      - name: Update kubeconfig
+        run: aws eks update-kubeconfig --name cloud-native-app-production --region ap-south-1
+
+      - name: Rollback deployment
+        run: |
+          echo "🔄 Rolling back deployment..."
+          kubectl rollout undo deployment/cloud-native-app -n production
+          kubectl rollout status deployment/cloud-native-app -n production --timeout=300s
+          echo "✅ Rollback complete"
