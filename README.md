@@ -1,242 +1,156 @@
 # ☁️ Cloud-Native DevOps / SRE Platform
 
-**Production-grade infrastructure** for deploying, monitoring, and operating cloud-native applications on AWS with Kubernetes, Terraform, and full observability.
+[![CI](https://github.com/AloneRider-pixel/cloud-native-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/AloneRider-pixel/cloud-native-platform/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
----
+**Cloud-native infrastructure reference platform for deploying, observing, and operating containerized applications on AWS.**
 
-## 🏗️ Architecture
+> **Portfolio focus:** AWS + Kubernetes + Terraform + CI/CD + observability + SRE practices.
 
+## Architecture
+
+```mermaid
+graph TB
+    DEV[Developer]
+    CI[GitHub Actions]
+    BUILD[Docker Build + Test]
+    ECR[AWS ECR]
+    TF[Terraform]
+    EKS[Kubernetes / EKS]
+    APP[Application Pods]
+    PROM[Prometheus]
+    GRAF[Grafana]
+    ALERT[Alertmanager]
+    SEC[AWS Secrets Manager / K8s Secrets]
+
+    DEV --> CI
+    CI --> BUILD --> ECR
+    CI --> TF --> EKS
+    ECR --> EKS --> APP
+    APP --> PROM --> GRAF
+    PROM --> ALERT
+    SEC --> APP
 ```
-Developer → Git Push
-              ↓
-        GitHub Actions CI/CD
-         ↓          ↓
-    Build & Test   Terraform Plan
-         ↓
-    Docker Build
-         ↓
-    AWS ECR (Container Registry)
-         ↓
-    Kubernetes (EKS) + Helm
-    ┌──────┼──────┐
-    ↓      ↓      ↓
-  App   App   App
-  Pod   Pod   Pod
-    └──────┼──────┘
-           ↓
-    ┌──────┴──────┐
-    ↓              ↓
-Prometheus     Grafana
-(Metrics)    (Dashboard)
-    ↓
-Alertmanager → Slack/PagerDuty
-```
 
----
-
-## ✨ Features
+## Engineering capabilities
 
 ### Infrastructure as Code
-- **Terraform** — Full AWS infrastructure (VPC, EKS, RDS, ElastiCache, S3)
-- **Modular Design** — Reusable Terraform modules for each component
-- **State Management** — S3 backend with DynamoDB locking
-- **Environment Separation** — dev, staging, production workspaces
+- Modular Terraform for VPC, EKS, RDS, ElastiCache, and S3.
+- Environment separation for development, staging, and production configurations.
+- Remote state design with S3 and locking support.
 
-### Container Orchestration
-- **Kubernetes (EKS)** — Managed Kubernetes on AWS
-- **Helm Charts** — Templated, versioned deployments
-- **Rolling Updates** — Zero-downtime deployments
-- **Health Probes** — Liveness and readiness checks
-- **Resource Limits** — CPU/memory requests and limits
-- **Autoscaling** — HPA based on CPU/memory/custom metrics
-- **Pod Disruption Budgets** — Ensure availability during updates
+### Kubernetes
+- EKS deployment patterns with Helm.
+- Liveness/readiness probes and resource requests/limits.
+- Horizontal Pod Autoscaling and PodDisruptionBudgets.
+- Network policies and environment-specific overlays.
 
-### CI/CD Pipeline
-- **GitHub Actions** — Automated build, test, and deploy
-- **Multi-stage Docker** — Optimized production images
-- **Container Registry** — AWS ECR with image scanning
-- **GitOps-ready** — Manifest-based deployment
-- **Rollback Strategy** — One-click rollback to previous version
-- **Blue/Green Support** — Traffic switching for safe releases
+### CI/CD
+- GitHub Actions build and deployment workflows.
+- Multi-stage Docker images.
+- AWS ECR image registry and scanning.
+- Staged deployment and rollback strategy.
+- GitOps-compatible Kubernetes manifests.
 
 ### Observability
-- **Prometheus** — Metrics collection with ServiceMonitors
-- **Grafana** — Pre-configured dashboards for apps + infra
-- **Alertmanager** — Alert routing to Slack, PagerDuty, email
-- **Centralized Logging** — Structured JSON logs with correlation IDs
-- **Distributed Tracing** — Request tracing across services
-- **SLI/SLO Dashboard** — Service level indicators and objectives
+- Prometheus metrics.
+- Grafana dashboards.
+- Alertmanager routing.
+- Structured logs and correlation IDs.
+- SLI/SLO and error-budget concepts.
 
-### Security
-- **Secrets Management** — Kubernetes Secrets + AWS Secrets Manager
-- **RBAC** — Role-based access control
-- **Network Policies** — Pod-to-pod traffic restrictions
-- **Pod Security Standards** — Restricted security context
-- **Image Scanning** — Automated vulnerability scanning in ECR
-- **TLS/HTTPS** — Ingress with cert-manager
+### Security and operations
+- Kubernetes RBAC and restricted security contexts.
+- AWS Secrets Manager integration.
+- Network isolation and TLS ingress.
+- Runbooks, incident-response documentation, and rollback scripts.
 
-### Incident Management
-- **Runbooks** — Step-by-step incident response procedures
-- **Incident Simulation** — Chaos engineering with Litmus
-- **Alert Escalation** — Multi-tier alert routing
-- **Post-mortem Templates** — Structured incident review
-
----
-
-## 🛠️ Tech Stack
+## Technology stack
 
 | Layer | Technology |
-|-------|-----------|
-| Cloud | AWS (EKS, RDS, ElastiCache, S3, ECR) |
+|---|---|
+| Cloud | AWS: EKS, RDS, ElastiCache, S3, ECR |
 | IaC | Terraform 1.6, Terragrunt |
-| Containers | Docker, multi-stage builds |
-| Orchestration | Kubernetes 1.28, Helm 3 |
+| Containers | Docker |
+| Orchestration | Kubernetes, Helm |
 | CI/CD | GitHub Actions |
 | Monitoring | Prometheus, Grafana, Alertmanager |
 | Logging | Loki, Promtail |
 | Ingress | Nginx Ingress Controller |
 | Secrets | AWS Secrets Manager, Sealed Secrets |
 
----
+## Repository structure
 
-## 🚀 Quick Start
+```text
+cloud-native-platform/
+├── infrastructure/terraform/
+│   ├── modules/
+│   └── environments/
+├── kubernetes/
+│   ├── base/
+│   └── overlays/
+├── helm/app/
+├── docker/
+├── monitoring/
+├── scripts/
+├── docs/
+│   ├── architecture.md
+│   ├── runbooks/
+│   └── incident-response.md
+└── .github/workflows/
+```
+
+## Local / AWS workflow
 
 ### Prerequisites
-- AWS CLI configured
-- kubectl installed
-- Helm 3 installed
-- Terraform 1.6+
 
-### 1. Provision Infrastructure
+- AWS CLI
+- `kubectl`
+- Helm 3
+- Terraform 1.6+
+- An AWS environment suitable for the resources in the Terraform configuration
+
+### Provision
 
 ```bash
 cd infrastructure/terraform
 terraform init
 terraform plan -var-file="environments/dev.tfvars"
-terraform apply -var-file="environments/dev.tfvars"
 ```
 
-### 2. Deploy Application
+Apply only after reviewing the plan in your AWS account.
+
+### Deploy
 
 ```bash
-# Update kubeconfig
 aws eks update-kubeconfig --name production-cluster --region ap-south-1
-
-# Deploy with Helm
 helm upgrade --install app ./helm/app \
   --namespace production \
   --create-namespace \
   --values helm/app/values-prod.yaml
 ```
 
-### 3. View Dashboards
+### Observe
 
 ```bash
-# Port-forward Grafana
 kubectl port-forward svc/grafana -n monitoring 3000:80
-
-# Access at http://localhost:3000 (admin/admin)
 ```
 
----
+## SRE artifacts
 
-## 📁 Project Structure
+The repository includes dashboard concepts and alert definitions for application error rate, latency, pod health, node pressure, disk usage, certificate expiry, and SLI/SLO tracking.
 
-```
-cloud-native-platform/
-├── infrastructure/
-│   └── terraform/
-│       ├── main.tf                  # Root module
-│       ├── variables.tf             # Input variables
-│       ├── outputs.tf               # Output values
-│       ├── providers.tf             # AWS provider config
-│       ├── modules/
-│       │   ├── vpc/                 # VPC, subnets, NAT
-│       │   ├── eks/                 # EKS cluster + node groups
-│       │   ├── rds/                 # RDS PostgreSQL
-│       │   ├── redis/               # ElastiCache Redis
-│       │   └── monitoring/          # Prometheus + Grafana
-│       └── environments/
-│           ├── dev.tfvars
-│           ├── staging.tfvars
-│           └── production.tfvars
-├── kubernetes/
-│   ├── base/                        # Base manifests
-│   │   ├── namespace.yaml
-│   │   ├── configmap.yaml
-│   │   ├── secret.yaml
-│   │   ├── deployment.yaml
-│   │   ├── service.yaml
-│   │   ├── ingress.yaml
-│   │   ├── hpa.yaml
-│   │   ├── pdb.yaml
-│   │   └── network-policy.yaml
-│   └── overlays/
-│       ├── dev/
-│       ├── staging/
-│       └── production/
-├── helm/
-│   └── app/
-│       ├── Chart.yaml
-│       ├── values.yaml
-│       ├── values-dev.yaml
-│       ├── values-staging.yaml
-│       ├── values-prod.yaml
-│       └── templates/
-├── docker/
-│   └── Dockerfile                   # Multi-stage production build
-├── monitoring/
-│   ├── prometheus/
-│   │   ├── prometheus.yml
-│   │   ├── rules/
-│   │   └── service-monitor.yaml
-│   ├── grafana/
-│   │   ├── dashboards/
-│   │   └── datasources/
-│   └── alertmanager/
-│       └── alertmanager.yml
-├── scripts/
-│   ├── deploy.sh
-│   ├── rollback.sh
-│   └── health-check.sh
-├── docs/
-│   ├── architecture.md
-│   ├── runbooks/
-│   └── incident-response.md
-├── .github/workflows/
-│   ├── ci.yml                       # Build + Test
-│   ├── deploy-staging.yml           # Deploy to staging
-│   └── deploy-production.yml        # Deploy to production
-└── README.md
-```
+Treat alert thresholds as **reference configuration** and tune them to the workload, service objectives, and environment being deployed.
 
----
+## Roadmap
 
-## 📊 Monitoring Dashboards
+- Policy-as-code with OPA/Gatekeeper.
+- ExternalDNS and cert-manager automation.
+- Progressive delivery with Argo Rollouts.
+- OpenTelemetry traces and logs.
+- Automated disaster-recovery drills.
+- Cost visibility and resource-rightsizing dashboards.
 
-| Dashboard | Metrics |
-|-----------|---------|
-| **Application** | Request rate, latency, errors, saturation |
-| **Infrastructure** | CPU, memory, disk, network per node |
-| **Kubernetes** | Pod status, restarts, resource usage |
-| **Database** | Connections, queries/sec, replication lag |
-| **SLO/SLI** | Error budget, availability, latency percentiles |
-
----
-
-## 🚨 Alert Rules
-
-| Alert | Condition | Severity |
-|-------|-----------|----------|
-| HighErrorRate | Error rate > 5% for 5m | Critical |
-| HighLatency | P95 latency > 2s for 10m | Warning |
-| PodCrashLoop | Pod restarts > 3 in 5m | Critical |
-| NodeMemoryPressure | Memory > 90% for 5m | Warning |
-| DiskSpaceLow | Disk > 85% used | Warning |
-| CertificateExpiry | TLS cert expires < 7 days | Warning |
-
----
-
-## 📝 License
+## License
 
 MIT
