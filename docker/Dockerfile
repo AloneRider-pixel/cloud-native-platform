@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM python:3.11-slim
+FROM python:3.14-slim
 
 # Security: run as a dedicated non-root user.
 RUN groupadd -r appuser && useradd -r -g appuser -d /app -s /usr/sbin/nologin appuser
