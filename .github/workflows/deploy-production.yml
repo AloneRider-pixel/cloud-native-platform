@@ -40,7 +40,7 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ap-south-1
       - name: Set up kubectl
-        uses: azure/setup-kubectl@v4
+        uses: azure/setup-kubectl@v5
         with:
           version: latest
       - name: Set up Helm
@@ -73,7 +73,7 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ap-south-1
       - name: Set up kubectl
-        uses: azure/setup-kubectl@v4
+        uses: azure/setup-kubectl@v5
       - name: Update kubeconfig
         run: aws eks update-kubeconfig --name cloud-native-app-production --region ap-south-1
       - name: Check application health
@@ -101,7 +101,7 @@ jobs:
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ap-south-1
-      - uses: azure/setup-kubectl@v4
+      - uses: azure/setup-kubectl@v5
       - name: Update kubeconfig
         run: aws eks update-kubeconfig --name cloud-native-app-production --region ap-south-1
       - name: Roll back
