@@ -14,8 +14,26 @@ permissions:
   security-events: write
 
 jobs:
+  detect:
+    name: Detect analyzable source
+    runs-on: ubuntu-latest
+    outputs:
+      has_python: ${{ steps.detect.outputs.has_python }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Detect Python files
+        id: detect
+        shell: bash
+        run: |
+          count=$(find . -type f -name '*.py' -not -path './.git/*' | wc -l | tr -d ' ')
+          echo "Python files: $count"
+          echo "has_python=$([ "$count" -gt 0 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+
   analyze:
     name: Analyze Python
+    needs: detect
+    if: needs.detect.outputs.has_python == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -28,3 +46,12 @@ jobs:
         uses: github/codeql-action/autobuild@v4
       - name: Analyze
         uses: github/codeql-action/analyze@v4
+
+  no-python:
+    name: CodeQL not applicable
+    needs: detect
+    if: needs.detect.outputs.has_python != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Confirm no Python source
+        run: echo 'No Python source is present; Python CodeQL analysis is not applicable.'
