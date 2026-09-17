@@ -33,18 +33,20 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ap-south-1
       - name: Set up kubectl
-        uses: azure/setup-kubectl@v4
+        uses: azure/setup-kubectl@v5
         with:
           version: latest
       - name: Set up Helm
-        uses: azure/setup-helm@v4
+        uses: azure/setup-helm@v5
+        with:
+          version: v4.2.4
       - name: Update kubeconfig
         run: aws eks update-kubeconfig --name cloud-native-app-production --region ap-south-1
       - name: Deploy with Helm
@@ -68,12 +70,14 @@ jobs:
       id-token: write
     steps:
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ap-south-1
       - name: Set up kubectl
-        uses: azure/setup-kubectl@v4
+        uses: azure/setup-kubectl@v5
+        with:
+          version: latest
       - name: Update kubeconfig
         run: aws eks update-kubeconfig --name cloud-native-app-production --region ap-south-1
       - name: Check application health
@@ -97,11 +101,13 @@ jobs:
       id-token: write
     steps:
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ap-south-1
-      - uses: azure/setup-kubectl@v4
+      - uses: azure/setup-kubectl@v5
+        with:
+          version: latest
       - name: Update kubeconfig
         run: aws eks update-kubeconfig --name cloud-native-app-production --region ap-south-1
       - name: Roll back
