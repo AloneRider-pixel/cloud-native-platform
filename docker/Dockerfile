@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM python:3.14-slim
+FROM python:3.14-slim@sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d
 
 # Security: run as a dedicated non-root user.
 RUN groupadd -r appuser && useradd -r -g appuser -d /app -s /usr/sbin/nologin appuser

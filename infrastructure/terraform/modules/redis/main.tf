@@ -40,7 +40,7 @@ resource "aws_elasticache_cluster" "main" {
   security_group_ids   = [aws_security_group.redis.id]
 
   tags = {
-    Name = "${var.project_name}-${var.environment}-redis"
+    Name        = "${var.project_name}-${var.environment}-redis"
     Environment = var.environment
   }
 }
