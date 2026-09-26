@@ -2,9 +2,9 @@ import json
 import threading
 import urllib.error
 import urllib.request
+from http.server import ThreadingHTTPServer
 
 from app.main import Handler
-from http.server import ThreadingHTTPServer
 
 
 def _start_server() -> tuple[ThreadingHTTPServer, threading.Thread]:
