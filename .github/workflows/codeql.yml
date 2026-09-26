@@ -21,7 +21,7 @@ jobs:
       has_python: ${{ steps.detect.outputs.has_python }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - name: Detect Python files
         id: detect
         shell: bash
@@ -37,15 +37,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v4
+        uses: github/codeql-action/init@7999b86c43a865dc79d8923397f35af22de63401
         with:
           languages: python
       - name: Autobuild
-        uses: github/codeql-action/autobuild@v4
+        uses: github/codeql-action/autobuild@7999b86c43a865dc79d8923397f35af22de63401
       - name: Analyze
-        uses: github/codeql-action/analyze@v4
+        uses: github/codeql-action/analyze@7999b86c43a865dc79d8923397f35af22de63401
 
   no-python:
     name: CodeQL not applicable
