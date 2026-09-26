@@ -5,10 +5,12 @@ on:
     branches: [upgrade/infra-format-green]
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   format:
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
