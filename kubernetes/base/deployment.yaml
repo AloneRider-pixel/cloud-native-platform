@@ -27,7 +27,11 @@ spec:
         prometheus.io/path: "/metrics"
     spec:
       serviceAccountName: app-service-account
+      automountServiceAccountToken: false
       terminationGracePeriodSeconds: 30
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: app
           image: ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/cloud-native-app/production:latest
