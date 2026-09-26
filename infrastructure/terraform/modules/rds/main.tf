@@ -30,6 +30,11 @@ resource "aws_security_group" "rds" {
   }
 }
 
+resource "random_password" "db" {
+  length  = 32
+  special = true
+}
+
 resource "aws_db_instance" "main" {
   identifier              = "${var.project_name}-${var.environment}"
   engine                  = "postgres"
