@@ -31,24 +31,24 @@ resource "aws_security_group" "rds" {
 }
 
 resource "aws_db_instance" "main" {
-  identifier           = "${var.project_name}-${var.environment}"
-  engine               = "postgres"
-  engine_version       = "16.1"
-  instance_class       = var.instance_class
-  allocated_storage    = var.allocated_storage
-  storage_encrypted    = true
-  db_name              = var.db_name
-  username             = var.db_username
-  password             = "ChangeMe-${var.environment}-2024!"
-  db_subnet_group_name = aws_db_subnet_group.main.name
-  vpc_security_group_ids = [aws_security_group.rds.id]
-  multi_az             = var.environment == "production" ? true : false
+  identifier              = "${var.project_name}-${var.environment}"
+  engine                  = "postgres"
+  engine_version          = "16.1"
+  instance_class          = var.instance_class
+  allocated_storage       = var.allocated_storage
+  storage_encrypted       = true
+  db_name                 = var.db_name
+  username                = var.db_username
+  password                = "ChangeMe-${var.environment}-2024!"
+  db_subnet_group_name    = aws_db_subnet_group.main.name
+  vpc_security_group_ids  = [aws_security_group.rds.id]
+  multi_az                = var.environment == "production" ? true : false
   backup_retention_period = var.environment == "production" ? 7 : 1
-  skip_final_snapshot  = var.environment != "production"
-  deletion_protection  = var.environment == "production" ? true : false
-  
+  skip_final_snapshot     = var.environment != "production"
+  deletion_protection     = var.environment == "production" ? true : false
+
   tags = {
-    Name = "${var.project_name}-${var.environment}-rds"
+    Name        = "${var.project_name}-${var.environment}-rds"
     Environment = var.environment
   }
 }
