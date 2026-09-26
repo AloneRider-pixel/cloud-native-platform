@@ -40,13 +40,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@7999b86c43a865dc79d8923397f35af22de63401
+        uses: github/codeql-action/init@f205ea1c3313d32999d8d6a48b4f6530d4437b38 # v4.37.4
         with:
           languages: python
       - name: Autobuild
-        uses: github/codeql-action/autobuild@7999b86c43a865dc79d8923397f35af22de63401
+        uses: github/codeql-action/autobuild@f205ea1c3313d32999d8d6a48b4f6530d4437b38 # v4.37.4
       - name: Analyze
-        uses: github/codeql-action/analyze@7999b86c43a865dc79d8923397f35af22de63401
+        uses: github/codeql-action/analyze@f205ea1c3313d32999d8d6a48b4f6530d4437b38 # v4.37.4
 
   no-python:
     name: CodeQL not applicable

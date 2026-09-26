@@ -151,6 +151,12 @@ Treat alert thresholds as **reference configuration** and tune them to the workl
 - Automated disaster-recovery drills.
 - Cost visibility and resource-rightsizing dashboards.
 
+## Evidence and reproducibility
+
+This repository uses reference infrastructure values rather than claiming production SLOs. Any published availability, latency, recovery, capacity, or cost figure should identify the environment, workload, measurement window, tooling, and commit-produced evidence.
+
+See [Evidence Policy](docs/evidence-policy.md).
+
 ## License
 
 MIT
