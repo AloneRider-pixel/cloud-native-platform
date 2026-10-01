@@ -1,170 +1,112 @@
 # ☁️ Cloud-Native DevOps / SRE Platform
 
 [![CI](https://github.com/AloneRider-pixel/cloud-native-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/AloneRider-pixel/cloud-native-platform/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/AloneRider-pixel/cloud-native-platform/actions/workflows/codeql.yml/badge.svg)](https://github.com/AloneRider-pixel/cloud-native-platform/actions/workflows/codeql.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-**Cloud-native infrastructure reference platform for deploying, observing, and operating containerized applications on AWS.**
-
-> **Portfolio focus:** AWS + Kubernetes + Terraform + CI/CD + observability + SRE practices.
+Cloud-native infrastructure reference platform for AWS, Kubernetes, Terraform, CI/CD, observability, and SRE operations.
 
 ## Architecture
 
 ```mermaid
 graph TB
-    DEV[Developer]
-    CI[GitHub Actions]
-    BUILD[Docker Build + Test]
-    ECR[AWS ECR]
-    TF[Terraform]
-    EKS[Kubernetes / EKS]
-    APP[Application Pods]
-    PROM[Prometheus]
-    GRAF[Grafana]
-    ALERT[Alertmanager]
-    SEC[AWS Secrets Manager / K8s Secrets]
-
-    DEV --> CI
-    CI --> BUILD --> ECR
-    CI --> TF --> EKS
-    ECR --> EKS --> APP
-    APP --> PROM --> GRAF
-    PROM --> ALERT
-    SEC --> APP
+    DEV[Developer] --> CI[GitHub Actions]
+    CI --> BUILD[Docker Build]
+    BUILD --> ECR[AWS ECR]
+    CI --> TF[Terraform]
+    TF --> EKS[EKS]
+    ECR --> EKS
+    EKS --> APP[Application]
+    APP --> PROM[Prometheus]
+    PROM --> GRAF[Grafana]
+    PROM --> ALERT[Alertmanager]
+    APP --> SEC[Secrets]
 ```
 
-## Engineering capabilities
+## Capabilities
 
-### Infrastructure as Code
-- Modular Terraform for VPC, EKS, RDS, ElastiCache, and S3.
-- Environment separation for development, staging, and production configurations.
-- Remote state design with S3 and locking support.
+- Modular Terraform for VPC, EKS, RDS, Redis, and related infrastructure.
+- Kubernetes deployment patterns with health probes, resource limits, HPA, PDB, network policy, and RBAC.
+- Helm packaging and GitHub Actions CI/CD.
+- Prometheus/Grafana/Alertmanager monitoring and operational runbooks.
+- Production deployment workflow using AWS OIDC with a narrowly scoped `id-token: write` permission.
 
-### Kubernetes
-- EKS deployment patterns with Helm.
-- Liveness/readiness probes and resource requests/limits.
-- Horizontal Pod Autoscaling and PodDisruptionBudgets.
-- Network policies and environment-specific overlays.
-
-### CI/CD
-- GitHub Actions build and deployment workflows.
-- Multi-stage Docker images.
-- AWS ECR image registry and scanning.
-- Staged deployment and rollback strategy.
-- GitOps-compatible Kubernetes manifests.
-
-### Observability
-- Prometheus metrics.
-- Grafana dashboards.
-- Alertmanager routing.
-- Structured logs and correlation IDs.
-- SLI/SLO and error-budget concepts.
-
-### Security and operations
-- Kubernetes RBAC and restricted security contexts.
-- AWS Secrets Manager integration.
-- Network isolation and TLS ingress.
-- Runbooks, incident-response documentation, and rollback scripts.
-
-## Technology stack
+## Stack
 
 | Layer | Technology |
 |---|---|
-| Cloud | AWS: EKS, RDS, ElastiCache, S3, ECR |
-| IaC | Terraform 1.6, Terragrunt |
-| Containers | Docker |
+| Cloud | AWS EKS, RDS, ElastiCache, S3, ECR |
+| IaC | Terraform, Terragrunt |
 | Orchestration | Kubernetes, Helm |
+| Containers | Docker |
 | CI/CD | GitHub Actions |
-| Monitoring | Prometheus, Grafana, Alertmanager |
-| Logging | Loki, Promtail |
-| Ingress | Nginx Ingress Controller |
-| Secrets | AWS Secrets Manager, Sealed Secrets |
+| Observability | Prometheus, Grafana, Alertmanager |
+| Secrets | AWS Secrets Manager / Kubernetes Secrets |
 
-## Repository structure
+## Repository layout
 
 ```text
-cloud-native-platform/
-├── infrastructure/terraform/
-│   ├── modules/
-│   └── environments/
-├── kubernetes/
-│   ├── base/
-│   └── overlays/
-├── helm/app/
-├── docker/
-├── monitoring/
-├── scripts/
-├── docs/
-│   ├── architecture.md
-│   ├── runbooks/
-│   └── incident-response.md
-└── .github/workflows/
+infrastructure/terraform/
+  modules/
+  environments/
+helm/app/
+kubernetes/base/
+docker/
+monitoring/
+scripts/
+docs/runbooks/
+.github/workflows/
 ```
 
-## Local / AWS workflow
+## Verification
 
-### Prerequisites
-
-- AWS CLI
-- `kubectl`
-- Helm 3
-- Terraform 1.6+
-- An AWS environment suitable for the resources in the Terraform configuration
-
-### Provision
+Terraform and application checks:
 
 ```bash
 cd infrastructure/terraform
-terraform init
-terraform plan -var-file="environments/dev.tfvars"
+terraform fmt -check -recursive
+terraform init -backend=false
+terraform validate
+
+cd ../..
+helm lint ./helm/app
+python scripts/verify_kubernetes_posture.py
+pytest tests/ -v
 ```
 
-Apply only after reviewing the plan in your AWS account.
+CI also builds the application image and runs CodeQL/Scorecard.
 
-### Deploy
+## Deployment
 
-```bash
-aws eks update-kubeconfig --name production-cluster --region ap-south-1
-helm upgrade --install app ./helm/app \
-  --namespace production \
-  --create-namespace \
-  --values helm/app/values-prod.yaml
-```
+Production deployment is intentionally manual. The workflow requires an explicit deployment confirmation and an immutable image tag, authenticates to AWS using OIDC, waits for rollout completion, performs a health check, and contains an automatic rollback path on failure.
 
-### Observe
+Do not treat the example AWS account, cluster name, region, image, or alert thresholds as production defaults; configure them for the target environment.
 
-```bash
-kubectl port-forward svc/grafana -n monitoring 3000:80
-```
+## Security
 
-## SRE artifacts
-
-The repository includes dashboard concepts and alert definitions for application error rate, latency, pod health, node pressure, disk usage, certificate expiry, and SLI/SLO tracking.
-
-Treat alert thresholds as **reference configuration** and tune them to the workload, service objectives, and environment being deployed.
-
-## Roadmap
-
-- Policy-as-code with OPA/Gatekeeper.
-- ExternalDNS and cert-manager automation.
-- Progressive delivery with Argo Rollouts.
-- OpenTelemetry traces and logs.
-- Automated disaster-recovery drills.
-- Cost visibility and resource-rightsizing dashboards.
+Treat Terraform, IAM, Kubernetes manifests, container images, ingress, and secrets as high-risk configuration. Keep least privilege, network controls, non-root workloads, health probes, and rollback paths intact.
 
 ## Evidence and reproducibility
 
-This repository uses reference infrastructure values rather than claiming production SLOs. Any published availability, latency, recovery, capacity, or cost figure should identify the environment, workload, measurement window, tooling, and commit-produced evidence.
+This is reference infrastructure. Any published availability, latency, capacity, recovery, or cost result should identify the environment, workload, measurement window, tooling, and producing commit.
 
-See [Evidence Policy](docs/evidence-policy.md).
+## Roadmap
+
+- Policy-as-code.
+- cert-manager / ExternalDNS automation.
+- Progressive delivery.
+- OpenTelemetry.
+- Disaster-recovery drills.
+- Cost and rightsizing dashboards.
+
+## Review path
+
+Start with [architecture](docs/architecture.md), [verification](docs/verification.md), and [runbooks](docs/runbooks). Review infrastructure changes with the Kubernetes posture script before deployment.
+
+## Maintenance standard
+
+Keep infrastructure declarative, secrets externalized, CI permissions minimal, and rollback procedures executable.
 
 ## License
 
 MIT
-
-## Repository review path
-
-Start with [architecture](docs/architecture.md), the runbooks under [docs/runbooks](docs/runbooks), and [verification](docs/verification.md). Run `terraform validate` before planning infrastructure changes and review Kubernetes posture before deployment.
-
-## Maintenance standard
-
-Treat Terraform, Helm, Kubernetes manifests, container images, and IAM as security-sensitive artifacts. Changes should preserve least privilege, health probes, resource limits, network controls, and rollback paths.
