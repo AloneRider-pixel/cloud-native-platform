@@ -160,3 +160,11 @@ See [Evidence Policy](docs/evidence-policy.md).
 ## License
 
 MIT
+
+## Repository review path
+
+Start with [architecture](docs/architecture.md), the runbooks under [docs/runbooks](docs/runbooks), and [verification](docs/verification.md). Run `terraform validate` before planning infrastructure changes and review Kubernetes posture before deployment.
+
+## Maintenance standard
+
+Treat Terraform, Helm, Kubernetes manifests, container images, and IAM as security-sensitive artifacts. Changes should preserve least privilege, health probes, resource limits, network controls, and rollback paths.
