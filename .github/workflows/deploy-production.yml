@@ -15,6 +15,12 @@ on:
 permissions:
   contents: read
 
+# Serialize the complete production deployment lifecycle so validation,
+# deployment, smoke tests, and rollback cannot overlap.
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
 jobs:
   validate:
     name: Validate deployment
