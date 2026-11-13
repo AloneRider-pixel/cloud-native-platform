@@ -104,6 +104,36 @@ jobs:
           context: .
           file: docker/Dockerfile
           push: false
+          load: true
           tags: cloud-native-platform:ci
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      - name: Smoke-test the built Python runtime as non-root
+        shell: bash
+        run: |
+          docker run --rm cloud-native-platform:ci python -c 'import os,sys; assert sys.version_info[:2] == (3,15); assert os.getuid() != 0'
+          docker run -d --name cloud-native-smoke -p 127.0.0.1:8000:8000 cloud-native-platform:ci
+          trap 'docker rm -f cloud-native-smoke' EXIT
+          python - <<'PYTEST'
+          import json, time, urllib.request, urllib.error
+          for attempt in range(30):
+              try:
+                  with urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2) as response:
+                      assert json.load(response) == {'status': 'healthy'}
+                  break
+              except OSError:
+                  time.sleep(1)
+          else:
+              raise RuntimeError('Built image did not become healthy')
+          with urllib.request.urlopen('http://127.0.0.1:8000/ready', timeout=3) as response:
+              assert json.load(response) == {'status': 'ready'}
+          with urllib.request.urlopen('http://127.0.0.1:8000/metrics', timeout=3) as response:
+              assert b'cloud_native_app_up 1' in response.read()
+          try:
+              urllib.request.urlopen('http://127.0.0.1:8000/missing', timeout=3)
+          except urllib.error.HTTPError as error:
+              assert error.code == 404
+              assert json.load(error) == {'error': 'not found'}
+          else:
+              raise AssertionError('Missing route must return 404')
+          PYTEST
